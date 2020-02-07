@@ -692,9 +692,14 @@ def train(options, data, n_gpus, tf_save_dir, tf_log_dir,
             initializer=tf.constant_initializer(0), trainable=False)
 
         # set up the optimizer
+        # Change 8 (optional)
+        # I will keep the learning rate as it is
         lr = options.get('learning_rate', 0.2)
         opt = tf.train.AdagradOptimizer(learning_rate=lr,
                                         initial_accumulator_value=1.0)
+        
+        # Change 9
+        opt = hvd.DistributedOptimizer(opt)
 
         # calculate the gradients on each GPU
         tower_grads = []
@@ -765,16 +770,25 @@ def train(options, data, n_gpus, tf_save_dir, tf_log_dir,
         hist_summary_op = tf.summary.merge(histogram_summaries)
 
         init = tf.initialize_all_variables()
-
+        
+        # Horovod: broadcast initial variable states from rank 0 to all other processes.
+        # This is necessary to ensure consistent initialization of all workers when
+        # training is started with random weights or restored from a checkpoint.
+        bcast = hvd.broadcast_global_variables(0)
+    
     # do the training loop
     bidirectional = options.get('bidirectional', False)
     # Change 4
-    config = tf.ConfigProto(allow_soft_placement=True)
+    # Horovod: pin GPU to be used to process local rank (one GPU per process)
+    config = tf.ConfigProto()
+    config.gpu_options.allow_growth = True
     config.gpu_options.visible_device_list = str(hvd.local_rank())
     with tf.Session(config=config) as sess:
     #with tf.Session(config=tf.ConfigProto(
     #        allow_soft_placement=True)) as sess:
+        # Change 6
         sess.run(init)
+        sess.run(bcast)
 
         # load the checkpoint data if needed
         if restart_ckpt_file is not None:
@@ -795,7 +809,8 @@ def train(options, data, n_gpus, tf_save_dir, tf_log_dir,
         batch_size = options['batch_size']
         unroll_steps = options['unroll_steps']
         n_train_tokens = options.get('n_train_tokens', 768648884)
-        n_tokens_per_batch = batch_size * unroll_steps * n_gpus
+        # Change 5
+        n_tokens_per_batch = batch_size * unroll_steps * hvd.size()
         n_batches_per_epoch = int(n_train_tokens / n_tokens_per_batch)
         n_batches_total = options['n_epochs'] * n_batches_per_epoch
         print("Training for %s epochs and %s batches" % (
