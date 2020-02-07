@@ -10,6 +10,9 @@ import re
 import tensorflow as tf
 import numpy as np
 
+# Change 1
+import horovod.tensorflow as hvd
+
 from tensorflow.python.ops.init_ops import glorot_uniform_initializer
 
 from .data import Vocabulary, UnicodeCharsVocabulary, InvalidNumberOfCharacters
