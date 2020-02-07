@@ -677,7 +677,10 @@ def _get_feed_dict_from_X(X, start, end, model, char_inputs, bidirectional):
 
 def train(options, data, n_gpus, tf_save_dir, tf_log_dir,
           restart_ckpt_file=None):
-
+    
+    # Change 2
+    hvd.init() 
+    
     # not restarting so save the options
     if restart_ckpt_file is None:
         with open(os.path.join(tf_save_dir, 'options.json'), 'w') as fout:
@@ -765,8 +768,12 @@ def train(options, data, n_gpus, tf_save_dir, tf_log_dir,
 
     # do the training loop
     bidirectional = options.get('bidirectional', False)
-    with tf.Session(config=tf.ConfigProto(
-            allow_soft_placement=True)) as sess:
+    # Change 4
+    config = tf.ConfigProto(allow_soft_placement=True)
+    config.gpu_options.visible_device_list = str(hvd.local_rank())
+    with tf.Session(config=config) as sess:
+    #with tf.Session(config=tf.ConfigProto(
+    #        allow_soft_placement=True)) as sess:
         sess.run(init)
 
         # load the checkpoint data if needed
@@ -891,6 +898,8 @@ def train(options, data, n_gpus, tf_save_dir, tf_log_dir,
 
             if (batch_no % 1250 == 0) or (batch_no == n_batches_total):
                 # save the model
+                # Change 3
+                tf_save_dir = tf_save_dir if hvd.rank() == 0 else os.path.join(tf_save_dir, str(hvd.rank()))
                 checkpoint_path = os.path.join(tf_save_dir, 'model.ckpt')
                 saver.save(sess, checkpoint_path, global_step=global_step)
 
