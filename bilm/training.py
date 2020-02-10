@@ -676,7 +676,7 @@ def _get_feed_dict_from_X(X, start, end, model, char_inputs, bidirectional):
 
 
 def train(options, data, n_gpus, tf_save_dir, tf_log_dir,
-          restart_ckpt_file=None, hvd):
+          hvd, restart_ckpt_file=None):
     
     # Change 2
     #hvd.init() 
