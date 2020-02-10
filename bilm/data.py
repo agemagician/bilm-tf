@@ -7,6 +7,7 @@ import numpy as np
 from typing import List
 
 
+
 class Vocabulary(object):
     '''
     A token vocabulary.  Holds a map from token to ids and provides
@@ -320,7 +321,7 @@ class LMDataset(object):
         per line.  Each sentence is pre-tokenized and white space joined.
     """
     def __init__(self, filepattern, vocab, reverse=False, test=False,
-                 shuffle_on_load=False):
+                 shuffle_on_load=False, world_size=1, global_rank=0)):
         '''
         filepattern = a glob string that specifies the list of files.
         vocab = an instance of Vocabulary or UnicodeCharsVocabulary
@@ -330,8 +331,9 @@ class LMDataset(object):
         shuffle_on_load = if True, then shuffle the sentences after loading.
         '''
         self._vocab = vocab
-        self._all_shards = glob.glob(filepattern)
-        print('Found %d shards at %s' % (len(self._all_shards), filepattern))
+        self._all_shards_across_nodes = glob.glob(filepattern)
+        self._all_shards = list(self.chunk(self._all_shards_across_nodes, world_size))[global_rank]
+        print('Rank %s: Found on%d shards at %s' % (str(global_rank),len(self._all_shards), filepattern))
         self._shards_to_choose = []
 
         self._reverse = reverse
@@ -340,6 +342,14 @@ class LMDataset(object):
         self._use_char_inputs = hasattr(vocab, 'encode_chars')
 
         self._ids = self._load_random_shard()
+
+    def chunk(self,a: list, n: int):
+        """Split `a` into `n` chunks, with the last bucket taking the remaining.
+        
+        https://stackoverflow.com/a/2135920
+        """
+        k, m = divmod(len(a), n)
+        return (a[i * k + min(i, m):(i + 1) * k + min(i + 1, m)] for i in range(n))
 
     def _choose_random_shard(self):
         if len(self._shards_to_choose) == 0:
@@ -433,16 +443,16 @@ class LMDataset(object):
         return self._vocab
 
 class BidirectionalLMDataset(object):
-    def __init__(self, filepattern, vocab, test=False, shuffle_on_load=False):
+    def __init__(self, filepattern, vocab, test=False, shuffle_on_load=False, world_size=1,global_rank=0):
         '''
         bidirectional version of LMDataset
         '''
         self._data_forward = LMDataset(
             filepattern, vocab, reverse=False, test=test,
-            shuffle_on_load=shuffle_on_load)
+            shuffle_on_load=shuffle_on_load, world_size=world_size,global_rank=global_rank)
         self._data_reverse = LMDataset(
             filepattern, vocab, reverse=True, test=test,
-            shuffle_on_load=shuffle_on_load)
+            shuffle_on_load=shuffle_on_load, world_size=world_size,global_rank=global_rank)
 
     def iter_batches(self, batch_size, num_steps):
         max_word_length = self._data_forward.max_word_length

@@ -11,7 +11,7 @@ import tensorflow as tf
 import numpy as np
 
 # Change 1
-import horovod.tensorflow as hvd
+#import horovod.tensorflow as hvd
 
 from tensorflow.python.ops.init_ops import glorot_uniform_initializer
 
@@ -676,10 +676,10 @@ def _get_feed_dict_from_X(X, start, end, model, char_inputs, bidirectional):
 
 
 def train(options, data, n_gpus, tf_save_dir, tf_log_dir,
-          restart_ckpt_file=None):
+          restart_ckpt_file=None, hvd):
     
     # Change 2
-    hvd.init() 
+    #hvd.init() 
     
     # not restarting so save the options
     if restart_ckpt_file is None:
@@ -709,7 +709,8 @@ def train(options, data, n_gpus, tf_save_dir, tf_log_dir,
             initializer=tf.constant_initializer(0.0), trainable=False)
         norm_summaries = []
         for k in range(n_gpus):
-            with tf.device('/gpu:%d' % k):
+            #with tf.device('/gpu:%d' % k):
+            with tf.device('/gpu:%d' % hvd.local_rank()):
                 with tf.variable_scope('lm', reuse=k > 0):
                     # calculate the loss for one model replica and get
                     #   lstm states
@@ -914,7 +915,7 @@ def train(options, data, n_gpus, tf_save_dir, tf_log_dir,
             if (batch_no % 1250 == 0) or (batch_no == n_batches_total):
                 # save the model
                 # Change 3
-                tf_save_dir = tf_save_dir if hvd.rank() == 0 else os.path.join(tf_save_dir, str(hvd.rank()))
+                #tf_save_dir = tf_save_dir if hvd.rank() == 0 else os.path.join(tf_save_dir, str(hvd.rank()))
                 checkpoint_path = os.path.join(tf_save_dir, 'model.ckpt')
                 saver.save(sess, checkpoint_path, global_step=global_step)
 
@@ -1132,4 +1133,3 @@ def dump_weights(tf_save_dir, outfile):
                 dset = fout.create_dataset(outname, shape, dtype='float32')
                 values = sess.run([v])[0]
                 dset[...] = values
-

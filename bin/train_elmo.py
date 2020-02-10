@@ -6,8 +6,14 @@ import numpy as np
 from bilm.training import train, load_options_latest_checkpoint, load_vocab
 from bilm.data import BidirectionalLMDataset
 
+# Change 1
+import horovod.tensorflow as hvd
 
 def main(args):
+
+    # Change 2
+    hvd.init()  
+
     # load the vocab
     vocab = load_vocab(args.vocab_file, 50)
 
@@ -56,11 +62,14 @@ def main(args):
 
     prefix = args.train_prefix
     data = BidirectionalLMDataset(prefix, vocab, test=False,
-                                      shuffle_on_load=True)
+                                      shuffle_on_load=True, world_size=hvd.size(),global_rank=hvd.rank())
+
+    # Change 3
+    args.save_dir = args.save_dir if hvd.rank() == 0 else os.path.join(args.save_dir, str(hvd.rank()))
 
     tf_save_dir = args.save_dir
     tf_log_dir = args.save_dir
-    train(options, data, n_gpus, tf_save_dir, tf_log_dir)
+    train(options, data, n_gpus, tf_save_dir, tf_log_dir, hvd)
 
 
 if __name__ == '__main__':
