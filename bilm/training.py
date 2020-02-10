@@ -702,7 +702,7 @@ def train(options, data, n_gpus, tf_save_dir, tf_log_dir,
         #lr = options.get('learning_rate', 0.2)
         #opt = tf.train.AdagradOptimizer(learning_rate=lr,
         #                                initial_accumulator_value=1.0)
-        lr = options.get('learning_rate', 0.002)
+        lr = options.get('learning_rate', 0.0002)
         opt = LAMBOptimizer(learning_rate=lr)
         # Change 9
         opt = hvd.DistributedOptimizer(opt)
