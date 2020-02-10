@@ -9,6 +9,8 @@ from bilm.data import BidirectionalLMDataset
 # Change 1
 import horovod.tensorflow as hvd
 
+import os
+
 def main(args):
 
     # Change 2
