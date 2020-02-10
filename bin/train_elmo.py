@@ -19,7 +19,7 @@ def main(args):
 
     # define the options
     batch_size = 128  # batch size for each GPU
-    n_gpus = 3
+    n_gpus = 1
 
     # number of tokens in training data (this for 1B Word Benchmark)
     n_train_tokens = 768648884
@@ -57,7 +57,7 @@ def main(args):
      'batch_size': batch_size,
      'n_tokens_vocab': vocab.size,
      'unroll_steps': 20,
-     'n_negative_samples_batch': 8192,
+     'n_negative_samples_batch': 20,
     }
 
     prefix = args.train_prefix
