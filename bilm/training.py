@@ -709,8 +709,8 @@ def train(options, data, n_gpus, tf_save_dir, tf_log_dir,
             initializer=tf.constant_initializer(0.0), trainable=False)
         norm_summaries = []
         for k in range(n_gpus):
-            with tf.device('/gpu:%d' % k):
-            #with tf.device('/gpu:%d' % hvd.local_rank()):
+            #with tf.device('/gpu:%d' % k):
+            with tf.device('/XLA_GPU:%d' % hvd.local_rank()):
                 with tf.variable_scope('lm', reuse=k > 0):
                     # calculate the loss for one model replica and get
                     #   lstm states
