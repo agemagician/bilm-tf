@@ -784,7 +784,7 @@ def train(options, data, n_gpus, tf_save_dir, tf_log_dir,
     config = tf.ConfigProto()
     config.gpu_options.allow_growth = True
     config.allow_soft_placement=True
-    config.log_device_placement=True
+    #config.log_device_placement=True
     config.gpu_options.visible_device_list = str(hvd.local_rank())
     #config.gpu_options.visible_device_list = str(0)
     with tf.Session(config=config) as sess:
