@@ -20,15 +20,14 @@ def main(args):
     vocab = load_vocab(args.vocab_file, 50)
 
     # define the options
-    batch_size = 128  # batch size for each GPU
+    batch_size = 64  # batch size for each GPU
     n_gpus = 1
 
     # number of tokens in training data (this for 1B Word Benchmark)
-    n_train_tokens = 768648884
+    n_train_tokens = 393530798900
 
-    options = {
-     'bidirectional': True,
 
+    '''
      'char_cnn': {'activation': 'relu',
       'embedding': {'dim': 16},
       'filters': [[1, 32],
@@ -41,14 +40,17 @@ def main(args):
       'max_characters_per_token': 50,
       'n_characters': 261,
       'n_highway': 2},
+    '''
+    options = {
+     'bidirectional': True,
     
-     'dropout': 0.1,
+     'dropout': 0.15,
     
      'lstm': {
-      'cell_clip': 3,
+      'cell_clip': 5,
       'dim': 4096,
-      'n_layers': 2,
-      'proj_clip': 3,
+      'n_layers': 4,
+      'proj_clip': 5,
       'projection_dim': 512,
       'use_skip_connections': True},
     
@@ -58,8 +60,8 @@ def main(args):
      'n_train_tokens': n_train_tokens,
      'batch_size': batch_size,
      'n_tokens_vocab': vocab.size,
-     'unroll_steps': 20,
-     'n_negative_samples_batch': 20,
+     'unroll_steps': 100,
+     'n_negative_samples_batch': 18,
     }
 
     prefix = args.train_prefix
@@ -68,6 +70,9 @@ def main(args):
 
     # Change 3
     args.save_dir = args.save_dir if hvd.rank() == 0 else os.path.join(args.save_dir, str(hvd.rank()))
+
+    if not os.path.exists(args.save_dir):
+        os.makedirs(args.save_dir)
 
     tf_save_dir = args.save_dir
     tf_log_dir = args.save_dir
