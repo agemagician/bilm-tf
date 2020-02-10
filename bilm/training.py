@@ -783,8 +783,8 @@ def train(options, data, n_gpus, tf_save_dir, tf_log_dir,
     # Horovod: pin GPU to be used to process local rank (one GPU per process)
     config = tf.ConfigProto()
     config.gpu_options.allow_growth = True
-    #config.gpu_options.visible_device_list = str(hvd.local_rank())
-    config.gpu_options.visible_device_list = str(0)
+    config.gpu_options.visible_device_list = str(hvd.local_rank())
+    #config.gpu_options.visible_device_list = str(0)
     with tf.Session(config=config) as sess:
     #with tf.Session(config=tf.ConfigProto(
     #        allow_soft_placement=True)) as sess:
