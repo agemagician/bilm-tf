@@ -10,6 +10,11 @@ import re
 import tensorflow as tf
 import numpy as np
 
+from tensorflow.python.ops import array_ops
+from tensorflow.python.ops import linalg_ops
+from tensorflow.python.ops import math_ops
+from horovod.tensorflow.compression import Compression
+
 # Change 1
 #import horovod.tensorflow as hvd
 
