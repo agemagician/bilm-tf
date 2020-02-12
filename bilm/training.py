@@ -691,7 +691,7 @@ def train(options, data, n_gpus, tf_save_dir, tf_log_dir,
     #hvd.init() 
     # Change me 
     tf.logging.set_verbosity(tf.logging.INFO)
-    lms_obj = LMS(gpu_device="/device:GPU:0")
+    lms_obj = LMS(gpu_device='/gpu:%d' % hvd.local_rank())
     lms_obj.run()
     #tf.config.experimental.set_lms_enabled(True)
     #tf.config.experimental.set_lms_defrag_enabled(True)
