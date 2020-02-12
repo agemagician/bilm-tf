@@ -805,10 +805,10 @@ def train(options, data, n_gpus, tf_save_dir, tf_log_dir,
     #config.gpu_options.visible_device_list = str(0)
 
     # Change me 
-    tf.logging.set_verbosity(tf.logging.INFO)
+    #tf.logging.set_verbosity(tf.logging.INFO)
     #print(device_lib.list_local_devices())
-    lms_obj = LMS()
-    lms_obj.run()
+    #lms_obj = LMS()
+    #lms_obj.run()
 
     with tf.Session(config=config) as sess:
     #with tf.Session(config=tf.ConfigProto(
