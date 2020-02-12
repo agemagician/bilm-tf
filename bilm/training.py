@@ -690,11 +690,7 @@ def train(options, data, n_gpus, tf_save_dir, tf_log_dir,
     
     # Change 2
     #hvd.init() 
-    # Change me 
-    tf.logging.set_verbosity(tf.logging.INFO)
-    print(device_lib.list_local_devices())
-    lms_obj = LMS()
-    lms_obj.run()
+
     #tf.config.experimental.set_lms_enabled(True)
     #tf.config.experimental.set_lms_defrag_enabled(True)
 
@@ -807,6 +803,13 @@ def train(options, data, n_gpus, tf_save_dir, tf_log_dir,
     #config.log_device_placement=True
     config.gpu_options.visible_device_list = str(hvd.local_rank())
     #config.gpu_options.visible_device_list = str(0)
+
+    # Change me 
+    tf.logging.set_verbosity(tf.logging.INFO)
+    #print(device_lib.list_local_devices())
+    lms_obj = LMS()
+    lms_obj.run()
+
     with tf.Session(config=config) as sess:
     #with tf.Session(config=tf.ConfigProto(
     #        allow_soft_placement=True)) as sess:
