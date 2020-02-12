@@ -20,6 +20,7 @@ from horovod.tensorflow.compression import Compression
 
 # Change lms
 from tensorflow_large_model_support import LMS
+from tensorflow.python.client import device_lib
 
 
 from tensorflow.python.ops.init_ops import glorot_uniform_initializer
@@ -691,6 +692,7 @@ def train(options, data, n_gpus, tf_save_dir, tf_log_dir,
     #hvd.init() 
     # Change me 
     tf.logging.set_verbosity(tf.logging.INFO)
+    print(device_lib.list_local_devices())
     lms_obj = LMS()
     lms_obj.run()
     #tf.config.experimental.set_lms_enabled(True)
