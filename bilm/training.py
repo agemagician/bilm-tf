@@ -18,6 +18,10 @@ from horovod.tensorflow.compression import Compression
 # Change 1
 #import horovod.tensorflow as hvd
 
+# Change lms
+from tensorflow_large_model_support import LMS
+
+
 from tensorflow.python.ops.init_ops import glorot_uniform_initializer
 
 from .data import Vocabulary, UnicodeCharsVocabulary, InvalidNumberOfCharacters
@@ -686,8 +690,11 @@ def train(options, data, n_gpus, tf_save_dir, tf_log_dir,
     # Change 2
     #hvd.init() 
     # Change me 
-    tf.config.experimental.set_lms_enabled(True)
-    tf.config.experimental.set_lms_defrag_enabled(True)
+    tf.logging.set_verbosity(tf.logging.INFO)
+    lms_obj = LMS()
+    lms_obj.run()
+    #tf.config.experimental.set_lms_enabled(True)
+    #tf.config.experimental.set_lms_defrag_enabled(True)
 
     # not restarting so save the options
     if restart_ckpt_file is None:
@@ -793,7 +800,7 @@ def train(options, data, n_gpus, tf_save_dir, tf_log_dir,
     config = tf.ConfigProto()
     config.gpu_options.allow_growth = True
     config.allow_soft_placement=True
-    config.gpu_options.experimental.lms_enabled = True
+    #config.gpu_options.experimental.lms_enabled = True
     
     #config.log_device_placement=True
     config.gpu_options.visible_device_list = str(hvd.local_rank())
