@@ -685,7 +685,10 @@ def train(options, data, n_gpus, tf_save_dir, tf_log_dir,
     
     # Change 2
     #hvd.init() 
-    
+    # Change me 
+    tf.config.experimental.set_lms_enabled(True)
+    tf.config.experimental.set_lms_defrag_enabled(True)
+
     # not restarting so save the options
     if restart_ckpt_file is None:
         with open(os.path.join(tf_save_dir, 'options.json'), 'w') as fout:
@@ -790,6 +793,8 @@ def train(options, data, n_gpus, tf_save_dir, tf_log_dir,
     config = tf.ConfigProto()
     config.gpu_options.allow_growth = True
     config.allow_soft_placement=True
+    config.gpu_options.experimental.lms_enabled = True
+    
     #config.log_device_placement=True
     config.gpu_options.visible_device_list = str(hvd.local_rank())
     #config.gpu_options.visible_device_list = str(0)
