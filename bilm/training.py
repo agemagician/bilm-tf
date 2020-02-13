@@ -712,6 +712,8 @@ def train(options, data, n_gpus, tf_save_dir, tf_log_dir,
                                         initial_accumulator_value=1.0)
         #lr = options.get('learning_rate', 0.0002)
         #opt = LAMBOptimizer(learning_rate=lr)
+        opt = tf.train.experimental.enable_mixed_precision_graph_rewrite(opt)
+
         # Change 9
         opt = hvd.DistributedOptimizer(opt)
 
@@ -809,6 +811,8 @@ def train(options, data, n_gpus, tf_save_dir, tf_log_dir,
     #print(device_lib.list_local_devices())
     #lms_obj = LMS()
     #lms_obj.run()
+    lms_obj = LMS(swapout_threshold=1, swapin_groupby=0, swapin_ahead=1,sync_mode=3) # These are the max swapping, slowest data throughput parameters. Adding sync_mode=3 would also allow for higher amount of data.
+    lms_obj.run()
 
     with tf.Session(config=config) as sess:
     #with tf.Session(config=tf.ConfigProto(
