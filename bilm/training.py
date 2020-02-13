@@ -712,7 +712,7 @@ def train(options, data, n_gpus, tf_save_dir, tf_log_dir,
                                         initial_accumulator_value=1.0)
         #lr = options.get('learning_rate', 0.0002)
         #opt = LAMBOptimizer(learning_rate=lr)
-        opt = tf.train.experimental.enable_mixed_precision_graph_rewrite(opt)
+        #opt = tf.train.experimental.enable_mixed_precision_graph_rewrite(opt)
 
         # Change 9
         opt = hvd.DistributedOptimizer(opt)
