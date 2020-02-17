@@ -715,7 +715,7 @@ def train(options, data, n_gpus, tf_save_dir, tf_log_dir,
         #opt = tf.train.experimental.enable_mixed_precision_graph_rewrite(opt)
 
         # Change 9
-        opt = hvd.DistributedOptimizer(opt)
+        opt = hvd.DistributedOptimizer(opt, sparse_as_dense=True)
 
         # calculate the gradients on each GPU
         tower_grads = []
