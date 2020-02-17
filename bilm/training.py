@@ -765,7 +765,8 @@ def train(options, data, n_gpus, tf_save_dir, tf_log_dir,
         # some histogram summaries.  all models use the same parameters
         # so only need to summarize one
         histogram_summaries = [
-            tf.summary.histogram('token_embedding', models[0].embedding)
+            #tf.summary.histogram('token_embedding', models[0].embedding)
+            tf.summary.histogram('token_embedding', model.embedding)
         ]
         # tensors of the output from the LSTM layer
         lstm_out = tf.get_collection('lstm_output_embeddings')
@@ -863,9 +864,9 @@ def train(options, data, n_gpus, tf_save_dir, tf_log_dir,
         # get the initial lstm states
         init_state_tensors = []
         final_state_tensors = []
-        for model in models:
-            init_state_tensors.extend(model.init_lstm_state)
-            final_state_tensors.extend(model.final_lstm_state)
+        #for model in models:
+        init_state_tensors.extend(model.init_lstm_state)
+        final_state_tensors.extend(model.final_lstm_state)
 
         char_inputs = 'char_cnn' in options
         if char_inputs:
