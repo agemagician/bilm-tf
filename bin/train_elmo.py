@@ -20,7 +20,7 @@ def main(args):
     vocab = load_vocab(args.vocab_file, 50)
 
     # define the options
-    batch_size = 42  # batch size for each GPU
+    batch_size = 32  # batch size for each GPU
     n_gpus = 1
 
     # number of tokens in training data (this for 1B Word Benchmark)
@@ -69,10 +69,10 @@ def main(args):
                                       shuffle_on_load=True, world_size=hvd.size(),global_rank=hvd.rank())
 
     # Change 3
-    args.save_dir = args.save_dir if hvd.rank() == 0 else os.path.join(args.save_dir, str(hvd.rank()))
-
-    if not os.path.exists(args.save_dir):
-        os.makedirs(args.save_dir)
+    #args.save_dir = args.save_dir if hvd.rank() == 0 else os.path.join(args.save_dir, str(hvd.rank()))
+    if hvd.rank() == 0:
+        if not os.path.exists(args.save_dir):
+            os.makedirs(args.save_dir)
 
     tf_save_dir = args.save_dir
     tf_log_dir = args.save_dir

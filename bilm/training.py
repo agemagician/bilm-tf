@@ -696,8 +696,9 @@ def train(options, data, n_gpus, tf_save_dir, tf_log_dir,
 
     # not restarting so save the options
     if restart_ckpt_file is None:
-        with open(os.path.join(tf_save_dir, 'options.json'), 'w') as fout:
-            fout.write(json.dumps(options))
+        if hvd.rank() == 0:
+            with open(os.path.join(tf_save_dir, 'options.json'), 'w') as fout:
+                fout.write(json.dumps(options))
 
     with tf.device('/cpu:0'):
         global_step = tf.get_variable(
@@ -826,7 +827,8 @@ def train(options, data, n_gpus, tf_save_dir, tf_log_dir,
             loader = tf.train.Saver()
             loader.restore(sess, restart_ckpt_file)
             
-        summary_writer = tf.summary.FileWriter(tf_log_dir, sess.graph)
+        if hvd.rank() == 0:
+            summary_writer = tf.summary.FileWriter(tf_log_dir, sess.graph)
 
         # For each batch:
         # Get a batch of data from the generator. The generator will
@@ -933,21 +935,21 @@ def train(options, data, n_gpus, tf_save_dir, tf_log_dir,
                 )
                 init_state_values = ret[4:]
                 
+            if hvd.rank() == 0:
+                if batch_no % 1250 == 0:
+                    summary_writer.add_summary(ret[3], batch_no)
+                if batch_no % 100 == 0:
+                    # write the summaries to tensorboard and display perplexity
+                    summary_writer.add_summary(ret[1], batch_no)
+                    print("Batch %s, train_perplexity=%s" % (batch_no, ret[2]))
+                    print("Total time: %s" % (time.time() - t1))
 
-            if batch_no % 1250 == 0:
-                summary_writer.add_summary(ret[3], batch_no)
-            if batch_no % 100 == 0:
-                # write the summaries to tensorboard and display perplexity
-                summary_writer.add_summary(ret[1], batch_no)
-                print("Batch %s, train_perplexity=%s" % (batch_no, ret[2]))
-                print("Total time: %s" % (time.time() - t1))
-
-            if (batch_no % 1250 == 0) or (batch_no == n_batches_total):
-                # save the model
-                # Change 3
-                #tf_save_dir = tf_save_dir if hvd.rank() == 0 else os.path.join(tf_save_dir, str(hvd.rank()))
-                checkpoint_path = os.path.join(tf_save_dir, 'model.ckpt')
-                saver.save(sess, checkpoint_path, global_step=global_step)
+                if (batch_no % 1250 == 0) or (batch_no == n_batches_total):
+                    # save the model
+                    # Change 3
+                    #tf_save_dir = tf_save_dir if hvd.rank() == 0 else os.path.join(tf_save_dir, str(hvd.rank()))
+                    checkpoint_path = os.path.join(tf_save_dir, 'model.ckpt')
+                    saver.save(sess, checkpoint_path, global_step=global_step)
 
             if batch_no == n_batches_total:
                 # done training!

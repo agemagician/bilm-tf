@@ -6,7 +6,16 @@ import numpy as np
 from bilm.training import train, load_options_latest_checkpoint, load_vocab
 from bilm.data import LMDataset, BidirectionalLMDataset
 
+# Change 1
+import horovod.tensorflow as hvd
+
+import os
+
 def main(args):
+
+    # Change 2
+    hvd.init()  
+
     options, ckpt_file = load_options_latest_checkpoint(args.save_dir)
 
     if 'char_cnn' in options:
@@ -23,9 +32,17 @@ def main(args):
     }
 
     if options.get('bidirectional'):
-        data = BidirectionalLMDataset(prefix, vocab, **kwargs)
+        #data = BidirectionalLMDataset(prefix, vocab, **kwargs)
+        data = BidirectionalLMDataset(prefix, vocab, test=False,
+                                      shuffle_on_load=True, world_size=hvd.size(),global_rank=hvd.rank())
     else:
         data = LMDataset(prefix, vocab, **kwargs)
+
+    #tf_save_dir = args.save_dir
+    #tf_log_dir = args.save_dir
+
+    # Change 3
+    #args.save_dir = args.save_dir if hvd.rank() == 0 else os.path.join(args.save_dir, str(hvd.rank()))
 
     tf_save_dir = args.save_dir
     tf_log_dir = args.save_dir
@@ -38,9 +55,10 @@ def main(args):
     if args.batch_size > 0:
         options['batch_size'] = args.batch_size
 
+    #train(options, data, args.n_gpus, tf_save_dir, tf_log_dir,
+    #      restart_ckpt_file=ckpt_file)
     train(options, data, args.n_gpus, tf_save_dir, tf_log_dir,
-          restart_ckpt_file=ckpt_file)
-
+          hvd, restart_ckpt_file=ckpt_file)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
