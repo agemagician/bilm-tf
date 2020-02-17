@@ -708,57 +708,51 @@ def train(options, data, n_gpus, tf_save_dir, tf_log_dir,
         # set up the optimizer
         # Change 8 (optional)
         # I will keep the learning rate as it is
-        #lr = options.get('learning_rate', 0.2)
-        #opt = tf.train.AdagradOptimizer(learning_rate=lr,
-        #                                initial_accumulator_value=1.0)
-        lr = options.get('learning_rate', 0.0001)
+        lr = options.get('learning_rate', 0.2)
+        opt = tf.train.AdagradOptimizer(learning_rate=lr,
+                                        initial_accumulator_value=1.0)
+        #lr = options.get('learning_rate', 0.0001)
         #print(lr)
-        opt = LAMBOptimizer(learning_rate=lr)
+        #opt = LAMBOptimizer(learning_rate=lr)
         #opt = tf.train.experimental.enable_mixed_precision_graph_rewrite(opt)
 
         # Change 9
         opt = hvd.DistributedOptimizer(opt, sparse_as_dense=True)
 
         # calculate the gradients on each GPU
-        #tower_grads = []
-        #models = []
+        tower_grads = []
+        models = []
         train_perplexity = tf.get_variable(
             'train_perplexity', [],
             initializer=tf.constant_initializer(0.0), trainable=False)
-        #norm_summaries = []
-        #for k in range(n_gpus):
-        #with tf.device('/gpu:%d' % hvd.local_rank()):
-        with tf.device('/gpu:0'):
-        #with tf.device('/XLA_GPU:%d' % hvd.local_rank()):
-            with tf.variable_scope('lm', reuse=False):
-                # calculate the loss for one model replica and get
-                #   lstm states
-                model = LanguageModel(options, True)
-                loss = model.total_loss
-                # get gradients
-                #grads = opt.compute_gradients(
-                #    loss * options['unroll_steps'],
-                #    aggregation_method=tf.AggregationMethod.EXPERIMENTAL_TREE,
-                #)
-                #tower_grads.append(grads)
-                # keep track of loss across all GPUs
-                #train_perplexity += loss
-                tvars = tf.trainable_variables()
-                grads_and_vars=opt.compute_gradients(loss* options['unroll_steps'], tvars)
+        norm_summaries = []
+        for k in range(n_gpus):
+            with tf.device('/gpu:%d' % k):
+            #with tf.device('/XLA_GPU:%d' % hvd.local_rank()):
+                with tf.variable_scope('lm', reuse=k > 0):
+                    # calculate the loss for one model replica and get
+                    #   lstm states
+                    model = LanguageModel(options, True)
+                    loss = model.total_loss
+                    models.append(model)
+                    # get gradients
+                    grads = opt.compute_gradients(
+                        loss * options['unroll_steps'],
+                        aggregation_method=tf.AggregationMethod.EXPERIMENTAL_TREE,
+                    )
+                    tower_grads.append(grads)
+                    # keep track of loss across all GPUs
+                    train_perplexity += loss
 
         print_variable_summary()
 
         # calculate the mean of each gradient across all GPUs
-        #grads = average_gradients(tower_grads, options['batch_size'], options)
-        #grads, norm_summary_ops = clip_grads(grads, options, True, global_step)
-        grads = [grad for grad,var in grads_and_vars]
-        tvars = [var for grad,var in grads_and_vars]
-        (grads, _) = tf.clip_by_global_norm(grads, clip_norm=1.0)
-        #norm_summaries.extend(norm_summary_ops)
+        grads = average_gradients(tower_grads, options['batch_size'], options)
+        grads, norm_summary_ops = clip_grads(grads, options, True, global_step)
+        norm_summaries.extend(norm_summary_ops)
 
         # log the training perplexity
-        #train_perplexity = tf.exp(train_perplexity / n_gpus)
-        train_perplexity = tf.exp(loss)
+        train_perplexity = tf.exp(train_perplexity / n_gpus)
         perplexity_summmary = tf.summary.scalar(
             'train_perplexity', train_perplexity)
 
@@ -777,8 +771,7 @@ def train(options, data, n_gpus, tf_save_dir, tf_log_dir,
                 tf.summary.histogram('lstm_embedding_1', lstm_out[1]))
 
         # apply the gradients to create the training operation
-        #train_op = opt.apply_gradients(grads, global_step=global_step)
-        train_op = optimizer.apply_gradients(zip(grads, tvars), global_step=global_step)
+        train_op = opt.apply_gradients(grads, global_step=global_step)
 
         # histograms of variables
         for v in tf.global_variables():
@@ -790,11 +783,8 @@ def train(options, data, n_gpus, tf_save_dir, tf_log_dir,
             summary_gradient_updates(grads, opt, lr))
 
         saver = tf.train.Saver(tf.global_variables(), max_to_keep=2)
-        #summary_op = tf.summary.merge(
-        #    [perplexity_summmary] + norm_summaries
-        #)
         summary_op = tf.summary.merge(
-            [perplexity_summmary]
+            [perplexity_summmary] + norm_summaries
         )
         hist_summary_op = tf.summary.merge(histogram_summaries)
 
@@ -875,14 +865,14 @@ def train(options, data, n_gpus, tf_save_dir, tf_log_dir,
             feed_dict = {
                 model.token_ids:
                     np.zeros([batch_size, unroll_steps], dtype=np.int64)
-                #for model in models
+                for model in models
             }
         else:
             feed_dict = {
                 model.tokens_characters:
                     np.zeros([batch_size, unroll_steps, max_chars],
                              dtype=np.int32)
-                #for model in models
+                for model in models
             }
 
         if bidirectional:
@@ -890,35 +880,35 @@ def train(options, data, n_gpus, tf_save_dir, tf_log_dir,
                 feed_dict.update({
                     model.token_ids_reverse:
                         np.zeros([batch_size, unroll_steps], dtype=np.int64)
-                    #for model in models
+                    for model in models
                 })
             else:
                 feed_dict.update({
                     model.tokens_characters_reverse:
                         np.zeros([batch_size, unroll_steps, max_chars],
                                  dtype=np.int32)
-                    #for model in models
+                    for model in models
                 })
 
         init_state_values = sess.run(init_state_tensors, feed_dict=feed_dict)
 
         t1 = time.time()
-        #data_gen = data.iter_batches(batch_size * n_gpus, unroll_steps)
-        data_gen = data.iter_batches(batch_size, unroll_steps)
+        data_gen = data.iter_batches(batch_size * n_gpus, unroll_steps)
         for batch_no, batch in enumerate(data_gen, start=1):
 
             # slice the input in the batch for the feed_dict
             X = batch
             feed_dict = {t: v for t, v in zip(
                                         init_state_tensors, init_state_values)}
-            #for k in range(n_gpus):
-            start = k * batch_size
-            end = (k + 1) * batch_size
+            for k in range(n_gpus):
+                model = models[k]
+                start = k * batch_size
+                end = (k + 1) * batch_size
 
-            feed_dict.update(
-                _get_feed_dict_from_X(X, start, end, model,
-                                        char_inputs, bidirectional)
-            )
+                feed_dict.update(
+                    _get_feed_dict_from_X(X, start, end, model,
+                                          char_inputs, bidirectional)
+                )
 
             # This runs the train_op, summaries and the "final_state_tensors"
             #   which just returns the tensors, passing in the initial
