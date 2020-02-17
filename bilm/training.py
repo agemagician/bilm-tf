@@ -764,6 +764,7 @@ def train(options, data, n_gpus, tf_save_dir, tf_log_dir,
 
         # some histogram summaries.  all models use the same parameters
         # so only need to summarize one
+        '''
         histogram_summaries = [
             #tf.summary.histogram('token_embedding', models[0].embedding)
             tf.summary.histogram('token_embedding', model.embedding)
@@ -776,11 +777,12 @@ def train(options, data, n_gpus, tf_save_dir, tf_log_dir,
             # also have the backward embedding
             histogram_summaries.append(
                 tf.summary.histogram('lstm_embedding_1', lstm_out[1]))
-
+        '''
         # apply the gradients to create the training operation
         #train_op = opt.apply_gradients(grads, global_step=global_step)
         train_op = opt.apply_gradients(zip(grads, tvars), global_step=global_step)
 
+        '''
         # histograms of variables
         for v in tf.global_variables():
             histogram_summaries.append(tf.summary.histogram(v.name.replace(":", "_"), v))
@@ -789,6 +791,7 @@ def train(options, data, n_gpus, tf_save_dir, tf_log_dir,
         # only update them when histograms are computed
         histogram_summaries.extend(
             summary_gradient_updates(grads, opt, lr))
+        '''
 
         saver = tf.train.Saver(tf.global_variables(), max_to_keep=2)
         #summary_op = tf.summary.merge(
@@ -797,7 +800,7 @@ def train(options, data, n_gpus, tf_save_dir, tf_log_dir,
         summary_op = tf.summary.merge(
             [perplexity_summmary]
         )
-        hist_summary_op = tf.summary.merge(histogram_summaries)
+        #hist_summary_op = tf.summary.merge(histogram_summaries)
 
         init = tf.initialize_all_variables()
         
@@ -941,15 +944,16 @@ def train(options, data, n_gpus, tf_save_dir, tf_log_dir,
             else:
                 # also run the histogram summaries
                 ret = sess.run(
-                    [train_op, summary_op, train_perplexity, hist_summary_op] + 
+                    #[train_op, summary_op, train_perplexity, hist_summary_op] + 
+                    [train_op, summary_op, train_perplexity] + 
                                                 final_state_tensors,
                     feed_dict=feed_dict
                 )
                 init_state_values = ret[4:]
                 
             if hvd.rank() == 0:
-                if batch_no % 1250 == 0:
-                    summary_writer.add_summary(ret[3], batch_no)
+                #if batch_no % 1250 == 0:
+                    #summary_writer.add_summary(ret[3], batch_no)
                 if batch_no % 100 == 0:
                     # write the summaries to tensorboard and display perplexity
                     summary_writer.add_summary(ret[1], batch_no)
