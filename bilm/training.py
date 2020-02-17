@@ -708,11 +708,11 @@ def train(options, data, n_gpus, tf_save_dir, tf_log_dir,
         # set up the optimizer
         # Change 8 (optional)
         # I will keep the learning rate as it is
-        lr = options.get('learning_rate', 0.2)
+        #lr = options.get('learning_rate', 0.2)
         #opt = tf.train.AdagradOptimizer(learning_rate=lr,
         #                                initial_accumulator_value=1.0)
-        #lr = options.get('learning_rate', 0.0002)
-        opt = LAMBOptimizer(learning_rate=0.0001)
+        lr = options.get('learning_rate', 0.0001)
+        opt = LAMBOptimizer(learning_rate=lr)
         #opt = tf.train.experimental.enable_mixed_precision_graph_rewrite(opt)
 
         # Change 9
