@@ -84,7 +84,7 @@ if __name__ == '__main__':
     parser.add_argument('--save_dir', help='Location of checkpoint files')
     parser.add_argument('--vocab_file', help='Vocabulary file')
     parser.add_argument('--train_prefix', help='Prefix for train files')
-
+    parser.add_argument('--resume_ckpt_file', help='load last checkpoint')
     args = parser.parse_args()
     main(args)
 
