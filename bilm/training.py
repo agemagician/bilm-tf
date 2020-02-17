@@ -916,8 +916,10 @@ def train(options, data, n_gpus, tf_save_dir, tf_log_dir,
             feed_dict = {t: v for t, v in zip(
                                         init_state_tensors, init_state_values)}
             #for k in range(n_gpus):
-            start = k * batch_size
-            end = (k + 1) * batch_size
+            #start = k * batch_size
+            #end = (k + 1) * batch_size
+            start = 0 * batch_size
+            end = (0 + 1) * batch_size
 
             feed_dict.update(
                 _get_feed_dict_from_X(X, start, end, model,
