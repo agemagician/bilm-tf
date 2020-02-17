@@ -779,7 +779,7 @@ def train(options, data, n_gpus, tf_save_dir, tf_log_dir,
 
         # apply the gradients to create the training operation
         #train_op = opt.apply_gradients(grads, global_step=global_step)
-        train_op = optimizer.apply_gradients(zip(grads, tvars), global_step=global_step)
+        train_op = opt.apply_gradients(zip(grads, tvars), global_step=global_step)
 
         # histograms of variables
         for v in tf.global_variables():
