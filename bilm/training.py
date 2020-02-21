@@ -1012,23 +1012,25 @@ def train(options, data, n_gpus, tf_save_dir, tf_log_dir,
                 )
                 init_state_values = ret[4:]
 
-            #step = sess.run(increment_global_step_op)
-            step = sess.run(global_step)
+            step,lr = sess.run([increment_global_step_op,learning_rate])
+            #step = sess.run(global_step)
 
             if hvd.rank() == 0:
                 if batch_no % 1250 == 0:
                     summary_writer.add_summary(ret[3], batch_no)
                 if batch_no % 100 == 0:
-                    lr = sess.run(learning_rate)
-                    print('global step %s' % (step))
+                    #lr = sess.run(learning_rate)
+                    #print('global step %s' % (step))
                     #lr = sess.run(tf.get_variable("learning_rate"))
+                    #step,lr = sess.run([increment_global_step_op,learning_rate])
                     sent_per_sec = (batch_size * hvd.size()) /  ( (time.time() - t0) /100 )
+                    percentage_completed_batchs = (batch_no / n_batches_total) * 100
                     # write the summaries to tensorboard and display perplexity
                     summary_writer.add_summary(ret[1], batch_no)
                     #print("Batch %s, train_perplexity=%s" % (batch_no, ret[2]))
                     #print("Total time: %s" % (time.time() - t1))
-                    print('Step = %6i Total Time = %15.3f Throughput = %11.1f Train Perplexity = %6.3f LR = %6.4e' %
-                      (batch_no, (time.time() - t1), sent_per_sec, ret[2], lr))
+                    print('Step = %6i Total Time = %15.3f Completed Batches = %5.3f Throughput = %11.1f Train Perplexity = %6.3f LR = %6.4e' %
+                      (step, (time.time() - t1), percentage_completed_batchs, sent_per_sec, ret[2], lr))
 
                     t0 = time.time()
 
