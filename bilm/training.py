@@ -1018,7 +1018,7 @@ def train(options, data, n_gpus, tf_save_dir, tf_log_dir,
                     summary_writer.add_summary(ret[1], batch_no)
                     #print("Batch %s, train_perplexity=%s" % (batch_no, ret[2]))
                     #print("Total time: %s" % (time.time() - t1))
-                    print('Step = %6i Total Time = %20.3f Throughput = %11.1f Train Perplexity = %6.3f LR = %6.4e' %
+                    print('Step = %6i Total Time = %15.3f Throughput = %11.1f Train Perplexity = %6.3f LR = %6.4e' %
                       (batch_no, (time.time() - t1), sent_per_sec, ret[2], lr))
 
                     t0 = time.time()
