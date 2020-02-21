@@ -834,7 +834,7 @@ def train(options, data, n_gpus, tf_save_dir, tf_log_dir,
     #lms_obj = LMS(swapout_threshold=1, swapin_groupby=0, swapin_ahead=1) # These are the max swapping, slowest data throughput parameters. Adding sync_mode=3 would also allow for higher amount of data.
     #lms_obj.run()
     lms_model = LMS(swapout_threshold=50, swapin_ahead=3, swapin_groupby=2)
-    lms_model.excl_output_by_scopes = {'loss', 'accuracy', 'dropout'}
+    #lms_model.excl_output_by_scopes = {'loss', 'accuracy', 'dropout'}
     lms_model.run()
 
     with tf.Session(graph=graph,config=config) as sess:
