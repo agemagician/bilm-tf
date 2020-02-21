@@ -51,10 +51,10 @@ def main(args):
      'dropout': 0.15,
     
      'lstm': {
-      'cell_clip': 5,
+      'cell_clip': 3,
       'dim': 4096,
-      'n_layers': 4,
-      'proj_clip': 5,
+      'n_layers': 2,
+      'proj_clip': 3,
       'projection_dim': 512,
       'use_skip_connections': True},
     
