@@ -819,7 +819,7 @@ def train(options, data, n_gpus, tf_save_dir, tf_log_dir,
     # Horovod: pin GPU to be used to process local rank (one GPU per process)
     config = tf.ConfigProto()
     config.gpu_options.allow_growth = True
-    #config.allow_soft_placement=True
+    config.allow_soft_placement=True
     #config.gpu_options.experimental.lms_enabled = True
     
     #config.log_device_placement=True
