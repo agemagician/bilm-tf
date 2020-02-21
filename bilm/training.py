@@ -701,6 +701,7 @@ def train(options, data, n_gpus, tf_save_dir, tf_log_dir,
                 fout.write(json.dumps(options))
 
     graph = tf.Graph()
+    with graph.as_default():
         #with tf.device('/cpu:0'):
         global_step = tf.get_variable(
             'global_step', [],
