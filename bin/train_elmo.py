@@ -1,20 +1,24 @@
 
 import argparse
 
+# Change 1
+import horovod.tensorflow as hvd
+# Change 2
+hvd.init() 
+import os
+os.environ['CUDA_VISIBLE_DEVICES'] = str(hvd.local_rank())
+
 import numpy as np
 
 from bilm.training import train, load_options_latest_checkpoint, load_vocab
 from bilm.data import BidirectionalLMDataset
 
-# Change 1
-import horovod.tensorflow as hvd
 
-import os
+
 
 def main(args):
 
-    # Change 2
-    hvd.init()  
+ 
 
     # load the vocab
     vocab = load_vocab(args.vocab_file, 50)
