@@ -53,7 +53,7 @@ def main(args):
      'lstm': {
       'cell_clip': 5,
       'dim': 4096,
-      'n_layers': 2,
+      'n_layers': 4,
       'proj_clip': 5,
       'projection_dim': 512,
       'use_skip_connections': True},
@@ -68,7 +68,7 @@ def main(args):
      'n_negative_samples_batch': 18,
 
      'optimizer_type': 'lamb',
-     'learning_rate':0.0001,
+     'learning_rate':0.0005,
      'warm_up_ratio':0.000005,
     }
 
