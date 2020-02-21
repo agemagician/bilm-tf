@@ -835,7 +835,7 @@ def train(options, data, n_gpus, tf_save_dir, tf_log_dir,
     #lms_obj.run()
     lms_model = LMS(swapout_threshold=50, swapin_ahead=3, swapin_groupby=2)
     #lms_model.excl_output_by_scopes = {'loss', 'accuracy', 'dropout'}
-    lms_model.run()
+    lms_model.run(graph)
 
     with tf.Session(graph=graph,config=config) as sess:
     #with tf.Session(config=tf.ConfigProto(
