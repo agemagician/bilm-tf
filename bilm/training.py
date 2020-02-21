@@ -1013,6 +1013,8 @@ def train(options, data, n_gpus, tf_save_dir, tf_log_dir,
                     summary_writer.add_summary(ret[3], batch_no)
                 if batch_no % 100 == 0:
                     lr = sess.run(learning_rate)
+                    gs = sess.run(global_step)
+                    print('global step %s' % (gs))
                     #lr = sess.run(tf.get_variable("learning_rate"))
                     sent_per_sec = (batch_size * hvd.size()) /  ( (time.time() - t0) /100 )
                     # write the summaries to tensorboard and display perplexity
