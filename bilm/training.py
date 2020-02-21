@@ -732,86 +732,86 @@ def train(options, data, n_gpus, tf_save_dir, tf_log_dir,
         #with tf.device('/gpu:%d' % hvd.local_rank()):
         #with tf.device('/gpu:0'):
         #with tf.device('/XLA_GPU:%d' % hvd.local_rank()):
-        with tf.variable_scope('lm', reuse=False):
-            # calculate the loss for one model replica and get
-            #   lstm states
-            model = LanguageModel(options, True)
-            loss = model.total_loss
-            # get gradients
-            #grads = opt.compute_gradients(
-            #    loss * options['unroll_steps'],
-            #    aggregation_method=tf.AggregationMethod.EXPERIMENTAL_TREE,
-            #)
-            #tower_grads.append(grads)
-            # keep track of loss across all GPUs
-            #train_perplexity += loss
-            train_op = opt.minimize(loss)
-            
-            ##       tvars = tf.trainable_variables()
-            ##       grads_and_vars=opt.compute_gradients(loss * options['unroll_steps'], tvars)
+        #with tf.variable_scope('lm', reuse=False):
+        # calculate the loss for one model replica and get
+        #   lstm states
+        model = LanguageModel(options, True)
+        loss = model.total_loss
+        # get gradients
+        #grads = opt.compute_gradients(
+        #    loss * options['unroll_steps'],
+        #    aggregation_method=tf.AggregationMethod.EXPERIMENTAL_TREE,
+        #)
+        #tower_grads.append(grads)
+        # keep track of loss across all GPUs
+        #train_perplexity += loss
+        train_op = opt.minimize(loss)
+        
+        ##       tvars = tf.trainable_variables()
+        ##       grads_and_vars=opt.compute_gradients(loss * options['unroll_steps'], tvars)
 
-            print_variable_summary()
+        print_variable_summary()
 
-            # calculate the mean of each gradient across all GPUs
-            #grads = average_gradients(tower_grads, options['batch_size'], options)
-            #grads, norm_summary_ops = clip_grads(grads, options, True, global_step)
-            ##       grads = [grad for grad,var in grads_and_vars]
-            ##       tvars = [var for grad,var in grads_and_vars]
-            ##      (grads, _) = tf.clip_by_global_norm(grads, clip_norm=1.0)
-            #norm_summaries.extend(norm_summary_ops)
+        # calculate the mean of each gradient across all GPUs
+        #grads = average_gradients(tower_grads, options['batch_size'], options)
+        #grads, norm_summary_ops = clip_grads(grads, options, True, global_step)
+        ##       grads = [grad for grad,var in grads_and_vars]
+        ##       tvars = [var for grad,var in grads_and_vars]
+        ##      (grads, _) = tf.clip_by_global_norm(grads, clip_norm=1.0)
+        #norm_summaries.extend(norm_summary_ops)
 
-            # log the training perplexity
-            #train_perplexity = tf.exp(train_perplexity / n_gpus)
-            train_perplexity = tf.exp(loss)
-            #perplexity_summmary = tf.summary.scalar(
-            #    'train_perplexity', train_perplexity)
+        # log the training perplexity
+        #train_perplexity = tf.exp(train_perplexity / n_gpus)
+        train_perplexity = tf.exp(loss)
+        #perplexity_summmary = tf.summary.scalar(
+        #    'train_perplexity', train_perplexity)
 
-            # some histogram summaries.  all models use the same parameters
-            # so only need to summarize one
-            '''
-            histogram_summaries = [
-                #tf.summary.histogram('token_embedding', models[0].embedding)
-                tf.summary.histogram('token_embedding', model.embedding)
-            ]
-            # tensors of the output from the LSTM layer
-            lstm_out = tf.get_collection('lstm_output_embeddings')
+        # some histogram summaries.  all models use the same parameters
+        # so only need to summarize one
+        '''
+        histogram_summaries = [
+            #tf.summary.histogram('token_embedding', models[0].embedding)
+            tf.summary.histogram('token_embedding', model.embedding)
+        ]
+        # tensors of the output from the LSTM layer
+        lstm_out = tf.get_collection('lstm_output_embeddings')
+        histogram_summaries.append(
+                tf.summary.histogram('lstm_embedding_0', lstm_out[0]))
+        if options.get('bidirectional', False):
+            # also have the backward embedding
             histogram_summaries.append(
-                    tf.summary.histogram('lstm_embedding_0', lstm_out[0]))
-            if options.get('bidirectional', False):
-                # also have the backward embedding
-                histogram_summaries.append(
-                    tf.summary.histogram('lstm_embedding_1', lstm_out[1]))
-            '''
-            # apply the gradients to create the training operation
-            #train_op = opt.apply_gradients(grads, global_step=global_step)
-            ##      train_op = opt.apply_gradients(zip(grads, tvars), global_step=global_step)
+                tf.summary.histogram('lstm_embedding_1', lstm_out[1]))
+        '''
+        # apply the gradients to create the training operation
+        #train_op = opt.apply_gradients(grads, global_step=global_step)
+        ##      train_op = opt.apply_gradients(zip(grads, tvars), global_step=global_step)
 
-            '''
-            # histograms of variables
-            for v in tf.global_variables():
-                histogram_summaries.append(tf.summary.histogram(v.name.replace(":", "_"), v))
+        '''
+        # histograms of variables
+        for v in tf.global_variables():
+            histogram_summaries.append(tf.summary.histogram(v.name.replace(":", "_"), v))
 
-            # get the gradient updates -- these aren't histograms, but we'll
-            # only update them when histograms are computed
-            histogram_summaries.extend(
-                summary_gradient_updates(grads, opt, lr))
-            '''
+        # get the gradient updates -- these aren't histograms, but we'll
+        # only update them when histograms are computed
+        histogram_summaries.extend(
+            summary_gradient_updates(grads, opt, lr))
+        '''
 
-            saver = tf.train.Saver(tf.global_variables(), max_to_keep=2)
-            #summary_op = tf.summary.merge(
-            #    [perplexity_summmary] + norm_summaries
-            #)
-            #summary_op = tf.summary.merge(
-            #    [perplexity_summmary]
-            #)
-            #hist_summary_op = tf.summary.merge(histogram_summaries)
+        saver = tf.train.Saver(tf.global_variables(), max_to_keep=2)
+        #summary_op = tf.summary.merge(
+        #    [perplexity_summmary] + norm_summaries
+        #)
+        #summary_op = tf.summary.merge(
+        #    [perplexity_summmary]
+        #)
+        #hist_summary_op = tf.summary.merge(histogram_summaries)
 
-            init = tf.initialize_all_variables()
-            
-            # Horovod: broadcast initial variable states from rank 0 to all other processes.
-            # This is necessary to ensure consistent initialization of all workers when
-            # training is started with random weights or restored from a checkpoint.
-            bcast = hvd.broadcast_global_variables(0)
+        init = tf.initialize_all_variables()
+        
+        # Horovod: broadcast initial variable states from rank 0 to all other processes.
+        # This is necessary to ensure consistent initialization of all workers when
+        # training is started with random weights or restored from a checkpoint.
+        bcast = hvd.broadcast_global_variables(0)
     
     # do the training loop
     bidirectional = options.get('bidirectional', False)
