@@ -704,9 +704,9 @@ def train(options, data, n_gpus, tf_save_dir, tf_log_dir,
         #global_step = tf.get_variable(
         #    'global_step', [],
         #    initializer=tf.constant_initializer(0), trainable=False)
-        global_step = tf.Variable(0, name='global_step', trainable=False, dtype=tf.int32)
+        #global_step = tf.Variable(0, name='global_step', trainable=False, dtype=tf.int32)
+        global_step = tf.compat.v1.train.get_or_create_global_step()
         increment_global_step_op = tf.assign(global_step, global_step+1)
-
 
         batch_size = options['batch_size']
         unroll_steps = options['unroll_steps']
@@ -1013,6 +1013,7 @@ def train(options, data, n_gpus, tf_save_dir, tf_log_dir,
                 init_state_values = ret[4:]
 
             #step = sess.run(increment_global_step_op)
+            step = sess.run(global_step)
 
             if hvd.rank() == 0:
                 if batch_no % 1250 == 0:
