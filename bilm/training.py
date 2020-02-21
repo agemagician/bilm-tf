@@ -691,8 +691,8 @@ def train(options, data, n_gpus, tf_save_dir, tf_log_dir,
     # Change 2
     #hvd.init() 
 
-    #tf.config.experimental.set_lms_enabled(True)
-    #tf.config.experimental.set_lms_defrag_enabled(True)
+    tf.config.experimental.set_lms_enabled(True)
+    tf.config.experimental.set_lms_defrag_enabled(True)
 
     # not restarting so save the options
     if restart_ckpt_file is None:
