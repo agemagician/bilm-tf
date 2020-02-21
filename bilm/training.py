@@ -1130,7 +1130,7 @@ class AdamWeightDecayOptimizer(tf.compat.v1.train.Optimizer):
     return param_name
 
 
-class LAMBOptimizer(tf.compat.v1.train.Optimizer):
+class LAMBOptimizerNvidia(tf.compat.v1.train.Optimizer):
   """A LAMB optimizer that includes "correct" L2 weight decay."""
 
   def __init__(self,
@@ -1245,7 +1245,7 @@ class LAMBOptimizer(tf.compat.v1.train.Optimizer):
       param_name = m.group(1)
     return param_name
     
-'''
+
 class LAMBOptimizer(tf.train.Optimizer):
   """
   LAMBOptimizer optimizer. 
@@ -1370,7 +1370,7 @@ class LAMBOptimizer(tf.train.Optimizer):
     if m is not None:
       param_name = m.group(1)
     return param_name
-''' 
+
 '''   
 class LAMBOptimizer(tf.compat.v1.train.Optimizer):
   """A LAMB optimizer that includes "correct" L2 weight decay."""
