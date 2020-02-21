@@ -713,8 +713,6 @@ def train(options, data, n_gpus, tf_save_dir, tf_log_dir,
         n_tokens_per_batch = batch_size * unroll_steps * hvd.size()
         n_batches_per_epoch = int(n_train_tokens / n_tokens_per_batch)
         n_batches_total = options['n_epochs'] * n_batches_per_epoch
-        print("Training for %s epochs and %s batches" % (
-            options['n_epochs'], n_batches_total))
 
 
         optimizer_type  = options.get('optimizer_type', 'lamb')
@@ -733,7 +731,7 @@ def train(options, data, n_gpus, tf_save_dir, tf_log_dir,
         adjusted_init_lr = init_lr * (init_lr / decayed_learning_rate_at_crossover_point)
         print('decayed_learning_rate_at_crossover_point = %e, adjusted_init_lr = %e' % (decayed_learning_rate_at_crossover_point, adjusted_init_lr))
 
-        learning_rate = tf.constant(value=adjusted_init_lr, shape=[], dtype=tf.float32)
+        #learning_rate = tf.constant(value=adjusted_init_lr, shape=[], dtype=tf.float32)
         
         # Implements linear decay of the learning rate.
         learning_rate = tf.compat.v1.train.polynomial_decay(
@@ -759,6 +757,8 @@ def train(options, data, n_gpus, tf_save_dir, tf_log_dir,
             is_warmup = tf.cast(global_steps_int < warmup_steps_int, tf.float32)
             learning_rate = (
                 (1.0 - is_warmup) * learning_rate + is_warmup * warmup_learning_rate)
+
+        #learning_rate = tf.identity(learning_rate, name="lr")
 
         if optimizer_type == "lamb":
             print("Initializing LAMB Optimizer")
@@ -918,7 +918,8 @@ def train(options, data, n_gpus, tf_save_dir, tf_log_dir,
         # collect the final LSTM states after each batch, then feed
         # them back in as the initial state for the next batch
 
-
+        print("Training for %s epochs and %s batches" % (
+            options['n_epochs'], n_batches_total))
 
         # get the initial lstm states
         init_state_tensors = []
@@ -966,6 +967,7 @@ def train(options, data, n_gpus, tf_save_dir, tf_log_dir,
         data_gen = data.iter_batches(batch_size * n_gpus, unroll_steps)
         for batch_no, batch in enumerate(data_gen, start=1):
 
+            t0 = time.time()
             # slice the input in the batch for the feed_dict
             X = batch
             feed_dict = {t: v for t, v in zip(
@@ -1010,10 +1012,16 @@ def train(options, data, n_gpus, tf_save_dir, tf_log_dir,
                 if batch_no % 1250 == 0:
                     summary_writer.add_summary(ret[3], batch_no)
                 if batch_no % 100 == 0:
+                    lr = sess.run(learning_rate)
+                    sent_per_sec = (batch_size * hvd.size()* 100) /  (time.time() - t0)
                     # write the summaries to tensorboard and display perplexity
                     summary_writer.add_summary(ret[1], batch_no)
-                    print("Batch %s, train_perplexity=%s" % (batch_no, ret[2]))
-                    print("Total time: %s" % (time.time() - t1))
+                    #print("Batch %s, train_perplexity=%s" % (batch_no, ret[2]))
+                    #print("Total time: %s" % (time.time() - t1))
+                    print('Step = %6i Total Time = %20.3f Throughput = %11.1f Train Perplexity = %6.3f LR = %6.4e' %
+                      (batch_no, (time.time() - t1), sent_per_sec, ret[2], lr))
+
+                    t0 = time.time()
 
                 if (batch_no % 1250 == 0) or (batch_no == n_batches_total):
                     # save the model
@@ -1698,3 +1706,5 @@ def dump_weights(tf_save_dir, outfile):
                 dset = fout.create_dataset(outname, shape, dtype='float32')
                 values = sess.run([v])[0]
                 dset[...] = values
+
+
