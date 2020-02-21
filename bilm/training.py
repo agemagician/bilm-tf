@@ -700,51 +700,51 @@ def train(options, data, n_gpus, tf_save_dir, tf_log_dir,
             with open(os.path.join(tf_save_dir, 'options.json'), 'w') as fout:
                 fout.write(json.dumps(options))
 
-    with tf.device('/cpu:0'):
-        global_step = tf.get_variable(
-            'global_step', [],
-            initializer=tf.constant_initializer(0), trainable=False)
+    #with tf.device('/cpu:0'):
+    global_step = tf.get_variable(
+        'global_step', [],
+        initializer=tf.constant_initializer(0), trainable=False)
 
-        # set up the optimizer
-        # Change 8 (optional)
-        # I will keep the learning rate as it is
-        #lr = options.get('learning_rate', 0.2)
-        #opt = tf.train.AdagradOptimizer(learning_rate=lr,
-        #                                initial_accumulator_value=1.0)
-        lr = options.get('learning_rate', 0.0001)
-        #print(lr)
-        opt = LAMBOptimizer(learning_rate=lr)
-        #opt = tf.train.experimental.enable_mixed_precision_graph_rewrite(opt)
+    # set up the optimizer
+    # Change 8 (optional)
+    # I will keep the learning rate as it is
+    #lr = options.get('learning_rate', 0.2)
+    #opt = tf.train.AdagradOptimizer(learning_rate=lr,
+    #                                initial_accumulator_value=1.0)
+    lr = options.get('learning_rate', 0.0001)
+    #print(lr)
+    opt = LAMBOptimizer(learning_rate=lr)
+    #opt = tf.train.experimental.enable_mixed_precision_graph_rewrite(opt)
 
-        # Change 9
-        opt = hvd.DistributedOptimizer(opt, sparse_as_dense=True)
+    # Change 9
+    opt = hvd.DistributedOptimizer(opt, sparse_as_dense=True)
 
-        # calculate the gradients on each GPU
-        #tower_grads = []
-        #models = []
-        train_perplexity = tf.get_variable(
-            'train_perplexity', [],
-            initializer=tf.constant_initializer(0.0), trainable=False)
-        #norm_summaries = []
-        #for k in range(n_gpus):
-        #with tf.device('/gpu:%d' % hvd.local_rank()):
-        with tf.device('/gpu:0'):
-        #with tf.device('/XLA_GPU:%d' % hvd.local_rank()):
-            with tf.variable_scope('lm', reuse=False):
-                # calculate the loss for one model replica and get
-                #   lstm states
-                model = LanguageModel(options, True)
-                loss = model.total_loss
-                # get gradients
-                #grads = opt.compute_gradients(
-                #    loss * options['unroll_steps'],
-                #    aggregation_method=tf.AggregationMethod.EXPERIMENTAL_TREE,
-                #)
-                #tower_grads.append(grads)
-                # keep track of loss across all GPUs
-                #train_perplexity += loss
-                tvars = tf.trainable_variables()
-                grads_and_vars=opt.compute_gradients(loss* options['unroll_steps'], tvars)
+    # calculate the gradients on each GPU
+    #tower_grads = []
+    #models = []
+    train_perplexity = tf.get_variable(
+        'train_perplexity', [],
+        initializer=tf.constant_initializer(0.0), trainable=False)
+    #norm_summaries = []
+    #for k in range(n_gpus):
+    #with tf.device('/gpu:%d' % hvd.local_rank()):
+    #with tf.device('/gpu:0'):
+    #with tf.device('/XLA_GPU:%d' % hvd.local_rank()):
+    with tf.variable_scope('lm', reuse=False):
+        # calculate the loss for one model replica and get
+        #   lstm states
+        model = LanguageModel(options, True)
+        loss = model.total_loss
+        # get gradients
+        #grads = opt.compute_gradients(
+        #    loss * options['unroll_steps'],
+        #    aggregation_method=tf.AggregationMethod.EXPERIMENTAL_TREE,
+        #)
+        #tower_grads.append(grads)
+        # keep track of loss across all GPUs
+        #train_perplexity += loss
+        tvars = tf.trainable_variables()
+        grads_and_vars=opt.compute_gradients(loss* options['unroll_steps'], tvars)
 
         print_variable_summary()
 
