@@ -701,9 +701,11 @@ def train(options, data, n_gpus, tf_save_dir, tf_log_dir,
                 fout.write(json.dumps(options))
 
     with tf.device('/cpu:0'):
-        global_step = tf.get_variable(
-            'global_step', [],
-            initializer=tf.constant_initializer(0), trainable=False)
+        #global_step = tf.get_variable(
+        #    'global_step', [],
+        #    initializer=tf.constant_initializer(0), trainable=False)
+        global_step = tf.Variable(1, name='global_step', trainable=False, dtype=tf.int32)
+        increment_global_step_op = tf.assign(global_step, global_step+1)
 
 
         batch_size = options['batch_size']
@@ -1007,14 +1009,15 @@ def train(options, data, n_gpus, tf_save_dir, tf_log_dir,
                     feed_dict=feed_dict
                 )
                 init_state_values = ret[4:]
-                
+
+            step = sess.run(increment_global_step_op)
+
             if hvd.rank() == 0:
                 if batch_no % 1250 == 0:
                     summary_writer.add_summary(ret[3], batch_no)
                 if batch_no % 100 == 0:
                     lr = sess.run(learning_rate)
-                    gs = sess.run(global_step)
-                    print('global step %s' % (gs))
+                    print('global step %s' % (step))
                     #lr = sess.run(tf.get_variable("learning_rate"))
                     sent_per_sec = (batch_size * hvd.size()) /  ( (time.time() - t0) /100 )
                     # write the summaries to tensorboard and display perplexity
