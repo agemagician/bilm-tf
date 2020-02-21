@@ -720,7 +720,7 @@ def train(options, data, n_gpus, tf_save_dir, tf_log_dir,
         optimizer_type  = options.get('optimizer_type', 'lamb')
         init_lr = options.get('learning_rate', 0.0001)
         num_train_steps = n_batches_total
-        num_warmup_steps = n_batches_total * options.get('warm_up_ratio', 0.01)
+        num_warmup_steps = int(n_batches_total * options.get('warm_up_ratio', 0.01))
         # avoid step change in learning rate at end of warmup phase
         if optimizer_type == "adam":
             power = 1.0
