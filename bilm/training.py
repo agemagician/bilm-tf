@@ -731,7 +731,7 @@ def train(options, data, n_gpus, tf_save_dir, tf_log_dir,
         adjusted_init_lr = init_lr * (init_lr / decayed_learning_rate_at_crossover_point)
         print('decayed_learning_rate_at_crossover_point = %e, adjusted_init_lr = %e' % (decayed_learning_rate_at_crossover_point, adjusted_init_lr))
 
-        #learning_rate = tf.constant(value=adjusted_init_lr, shape=[], dtype=tf.float32)
+        learning_rate = tf.constant(value=adjusted_init_lr, shape=[], dtype=tf.float32)
         
         # Implements linear decay of the learning rate.
         learning_rate = tf.compat.v1.train.polynomial_decay(
