@@ -945,7 +945,8 @@ def train(options, data, n_gpus, tf_save_dir, tf_log_dir,
 
 
             _, perplexity, hidden_state = sess.run(
-                    [train_op, train_perplexity,final_state_tensors],
+                    [train_op, train_perplexity] +
+                                                final_state_tensors,
                     feed_dict=feed_dict
                 )
             init_state_values = hidden_state
