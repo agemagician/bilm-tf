@@ -69,7 +69,7 @@ def main(args):
 
      'optimizer_type': 'lamb',
      'learning_rate':0.0005,
-     'warm_up_ratio':0.000005,
+     'warm_up_ratio':0.00001,
     }
 
     prefix = args.train_prefix
