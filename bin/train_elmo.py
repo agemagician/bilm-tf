@@ -68,8 +68,8 @@ def main(args):
      'n_negative_samples_batch': 18,
 
      'optimizer_type': 'lamb',
-     'learning_rate':0.001,
-     'warm_up_ratio':0.0000001,
+     'learning_rate':0.0001,
+     'warm_up_ratio':0.000000000001,
     }
 
     prefix = args.train_prefix
