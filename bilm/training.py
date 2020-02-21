@@ -895,8 +895,8 @@ def train(options, data, n_gpus, tf_save_dir, tf_log_dir,
     #print(device_lib.list_local_devices())
     #lms_obj = LMS()
     #lms_obj.run()
-    lms_obj = LMS(swapout_threshold=1, swapin_groupby=0, swapin_ahead=1) # These are the max swapping, slowest data throughput parameters. Adding sync_mode=3 would also allow for higher amount of data.
-    lms_obj.run()
+    #lms_obj = LMS(swapout_threshold=1, swapin_groupby=0, swapin_ahead=1) # These are the max swapping, slowest data throughput parameters. Adding sync_mode=3 would also allow for higher amount of data.
+    #lms_obj.run()
 
     with tf.Session(config=config) as sess:
     #with tf.Session(config=tf.ConfigProto(
