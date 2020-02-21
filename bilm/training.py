@@ -1013,8 +1013,8 @@ def train(options, data, n_gpus, tf_save_dir, tf_log_dir,
                     summary_writer.add_summary(ret[3], batch_no)
                 if batch_no % 100 == 0:
                     #lr = sess.run(learning_rate)
-                    lr = sess.run(optimizer.learning_rate)
-                    sent_per_sec = (batch_size * hvd.size()* 100) /  (time.time() - t0)
+                    lr = sess.run(tf.get_variable("learning_rate"))
+                    sent_per_sec = (batch_size * hvd.size()) /  ( (time.time() - t0) /100 )
                     # write the summaries to tensorboard and display perplexity
                     summary_writer.add_summary(ret[1], batch_no)
                     #print("Batch %s, train_perplexity=%s" % (batch_no, ret[2]))
@@ -1284,7 +1284,8 @@ class LAMBOptimizer(tf.train.Optimizer):
     """Constructs a LAMBOptimizer."""
     super(LAMBOptimizer, self).__init__(False, name)
 
-    self.learning_rate = learning_rate
+    self.learning_rate = tf.identity(learning_rate, name='learning_rate')
+    #self.learning_rate = learning_rate
     self.weight_decay_rate = weight_decay_rate
     self.beta_1 = beta_1
     self.beta_2 = beta_2
