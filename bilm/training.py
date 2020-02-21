@@ -690,7 +690,7 @@ def train(options, data, n_gpus, tf_save_dir, tf_log_dir,
     
     # Change 2
     #hvd.init() 
-
+    os.environ['CUDA_VISIBLE_DEVICES'] = str(hvd.local_rank())
     #tf.config.experimental.set_lms_enabled(True)
     #tf.config.experimental.set_lms_defrag_enabled(True)
 
