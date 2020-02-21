@@ -704,7 +704,7 @@ def train(options, data, n_gpus, tf_save_dir, tf_log_dir,
         #global_step = tf.get_variable(
         #    'global_step', [],
         #    initializer=tf.constant_initializer(0), trainable=False)
-        global_step = tf.Variable(1, name='global_step', trainable=False, dtype=tf.int32)
+        global_step = tf.Variable(0, name='global_step', trainable=False, dtype=tf.int32)
         increment_global_step_op = tf.assign(global_step, global_step+1)
 
 
@@ -851,7 +851,9 @@ def train(options, data, n_gpus, tf_save_dir, tf_log_dir,
                 tf.summary.histogram('lstm_embedding_1', lstm_out[1]))
 
         # apply the gradients to create the training operation
-        train_op = optimizer.apply_gradients(grads, global_step=global_step)
+        #train_op = optimizer.apply_gradients(grads, global_step=global_step)
+        train_op = optimizer.apply_gradients(grads, global_step=tf.train.get_global_step())
+        
 
         # histograms of variables
         for v in tf.global_variables():
@@ -1010,7 +1012,7 @@ def train(options, data, n_gpus, tf_save_dir, tf_log_dir,
                 )
                 init_state_values = ret[4:]
 
-            step = sess.run(increment_global_step_op)
+            #step = sess.run(increment_global_step_op)
 
             if hvd.rank() == 0:
                 if batch_no % 1250 == 0:
