@@ -51,10 +51,10 @@ def main(args):
      'dropout': 0.15,
     
      'lstm': {
-      'cell_clip': 3,
+      'cell_clip': 5,
       'dim': 4096,
       'n_layers': 2,
-      'proj_clip': 3,
+      'proj_clip': 5,
       'projection_dim': 512,
       'use_skip_connections': True},
     
@@ -66,6 +66,10 @@ def main(args):
      'n_tokens_vocab': vocab.size,
      'unroll_steps': 100,
      'n_negative_samples_batch': 18,
+
+     'optimizer_type': 'lamb',
+     'learning_rate':0.001,
+     'warm_up_ratio':0.1,
     }
 
     prefix = args.train_prefix
