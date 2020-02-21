@@ -6,7 +6,7 @@ import horovod.tensorflow as hvd
 # Change 2
 hvd.init() 
 import os
-os.environ['CUDA_VISIBLE_DEVICES'] = str(hvd.local_rank())
+#os.environ['CUDA_VISIBLE_DEVICES'] = str(hvd.local_rank())
 
 import numpy as np
 
