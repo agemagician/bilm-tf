@@ -964,10 +964,10 @@ def train(options, data, n_gpus, tf_save_dir, tf_log_dir,
         init_state_values = sess.run(init_state_tensors, feed_dict=feed_dict)
 
         t1 = time.time()
+        t0 = time.time()
         data_gen = data.iter_batches(batch_size * n_gpus, unroll_steps)
         for batch_no, batch in enumerate(data_gen, start=1):
 
-            t0 = time.time()
             # slice the input in the batch for the feed_dict
             X = batch
             feed_dict = {t: v for t, v in zip(
