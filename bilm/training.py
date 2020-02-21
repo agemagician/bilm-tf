@@ -745,17 +745,19 @@ def train(options, data, n_gpus, tf_save_dir, tf_log_dir,
             #tower_grads.append(grads)
             # keep track of loss across all GPUs
             #train_perplexity += loss
-            tvars = tf.trainable_variables()
-            grads_and_vars=opt.compute_gradients(loss * options['unroll_steps'], tvars)
+            train_op = opt.minimize(loss)
+            
+            ##       tvars = tf.trainable_variables()
+            ##       grads_and_vars=opt.compute_gradients(loss * options['unroll_steps'], tvars)
 
             print_variable_summary()
 
             # calculate the mean of each gradient across all GPUs
             #grads = average_gradients(tower_grads, options['batch_size'], options)
             #grads, norm_summary_ops = clip_grads(grads, options, True, global_step)
-            grads = [grad for grad,var in grads_and_vars]
-            tvars = [var for grad,var in grads_and_vars]
-            (grads, _) = tf.clip_by_global_norm(grads, clip_norm=1.0)
+            ##       grads = [grad for grad,var in grads_and_vars]
+            ##       tvars = [var for grad,var in grads_and_vars]
+            ##      (grads, _) = tf.clip_by_global_norm(grads, clip_norm=1.0)
             #norm_summaries.extend(norm_summary_ops)
 
             # log the training perplexity
@@ -782,7 +784,7 @@ def train(options, data, n_gpus, tf_save_dir, tf_log_dir,
             '''
             # apply the gradients to create the training operation
             #train_op = opt.apply_gradients(grads, global_step=global_step)
-            train_op = opt.apply_gradients(zip(grads, tvars), global_step=global_step)
+            ##      train_op = opt.apply_gradients(zip(grads, tvars), global_step=global_step)
 
             '''
             # histograms of variables
