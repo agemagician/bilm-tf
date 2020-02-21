@@ -691,8 +691,8 @@ def train(options, data, n_gpus, tf_save_dir, tf_log_dir,
     # Change 2
     #hvd.init() 
 
-    tf.config.experimental.set_lms_enabled(True)
-    tf.config.experimental.set_lms_defrag_enabled(True)
+    #tf.config.experimental.set_lms_enabled(True)
+    #tf.config.experimental.set_lms_defrag_enabled(True)
 
     # not restarting so save the options
     if restart_ckpt_file is None:
@@ -833,6 +833,9 @@ def train(options, data, n_gpus, tf_save_dir, tf_log_dir,
     #lms_obj.run()
     #lms_obj = LMS(swapout_threshold=1, swapin_groupby=0, swapin_ahead=1) # These are the max swapping, slowest data throughput parameters. Adding sync_mode=3 would also allow for higher amount of data.
     #lms_obj.run()
+    lms_model = LMS(swapout_threshold=50, swapin_ahead=3, swapin_groupby=2)
+    lms_model.excl_output_by_scopes = {'loss', 'accuracy', 'dropout'}
+    lms_model.run()
 
     with tf.Session(graph=graph,config=config) as sess:
     #with tf.Session(config=tf.ConfigProto(
