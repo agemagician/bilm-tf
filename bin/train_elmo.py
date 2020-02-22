@@ -60,7 +60,7 @@ def main(args):
     
      'all_clip_norm_val': 10.0,
     
-     'n_epochs': 10,
+     'n_epochs': 4,
      'n_train_tokens': n_train_tokens,
      'batch_size': batch_size,
      'n_tokens_vocab': vocab.size,
@@ -68,8 +68,8 @@ def main(args):
      'n_negative_samples_batch': 18,
 
      'optimizer_type': 'lamb',
-     'learning_rate':0.0005,
-     'warm_up_ratio':0.00001,
+     'learning_rate':0.005,
+     'warm_up_ratio':0.5,
     }
 
     prefix = args.train_prefix
